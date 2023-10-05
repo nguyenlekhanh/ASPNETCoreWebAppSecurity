@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace ASPNETCoreWebAppSecurity.Pages.Account
 {
@@ -15,9 +17,31 @@ namespace ASPNETCoreWebAppSecurity.Pages.Account
             Credential.UserName = "admin";
         }
 
-        public void OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
+            if(!ModelState.IsValid) return Page();
 
+            //Verify the credential
+            if (Credential.UserName == "admin" && Credential.Password == "password")
+            {
+                //Creating the security context
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "admin"),
+                    new Claim(ClaimTypes.Email, "admin@mywebsite.com")
+                };
+
+                var identity = new ClaimsIdentity(claims, "MyCookieAuth");
+
+                //have security context with claimsPrincipal
+                ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync("MyCookieAuth", claimsPrincipal);
+
+                return RedirectToPage("/Index");
+            }
+
+            return Page();
         }
     }
 
