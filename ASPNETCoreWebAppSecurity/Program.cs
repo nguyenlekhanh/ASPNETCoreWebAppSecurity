@@ -13,6 +13,13 @@ builder.Services.AddAuthentication("MyCookieAuth")
 
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy("AdminOnly",
+        policy => policy.RequireClaim("Department"));
+
+    options.AddPolicy("HRManagerOnly",
+        policy => policy.RequireClaim("Department", "HR")
+                        .RequireClaim("Manager"));
+    
     options.AddPolicy("MustBelongToHRDepartment",
         policy => policy.RequireClaim("Department", "HR"));
 });
